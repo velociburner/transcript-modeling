@@ -1,7 +1,5 @@
 streamlit
 bertopic
 matplotlib
-mpl_toolkits
 numpy
 scikit-learn
-sentence_transformers
