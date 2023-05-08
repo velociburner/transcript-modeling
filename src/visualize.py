@@ -31,4 +31,7 @@ def plot_speakers(model, speakers: dict[str, list]):
     for i, speaker in enumerate(speakers):
         ax.text(x[i], y[i], z[i], speaker, fontsize=8)
 
-    plt.show()
+    # plt.show()
+    # plt.plot()
+    return fig
+    
