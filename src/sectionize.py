@@ -17,7 +17,7 @@ def sectionize_play(script):
     # if title is preceded by "TITLE" or something similar, extract it
     # "START OF THIS _" = start of relevant material; before = metadata
     # line of just punctuation: probably a delimiter
-     # prose: mostly normal-cased words
+    # prose: mostly normal-cased words
     # if more lines are of the form [A-Z]+.[whatever] than [A-Z]+:[whatever]:, "." is probably the delimiter
     # if we see no "X:Y" or "X.Y" lines, speakers and speech may be on separate lines (see alfred noyes' "rada")
     # these will have line-bigrams of the form "NAME, line", flanked by blank lines on either side
@@ -30,17 +30,14 @@ def sectionize_play(script):
     subsubsection = False
 
     def add_section(last_section, subsection, subsubsection):
-        # last_section = Section(current_section_name, len(current_section), '\n'.join(current_section))
         if subsection:
             if subsubsection:
                 sections[-1].subsections[-1].subsections.append(last_section)
-                # subsubsection = False
             else:
                 sections[-1].subsections.append(last_section)
-                # subsection = False
         else:
             sections.append(last_section)
-        return sections, subsection, subsubsection
+        return sections
 
     lines = script.split('\n')
     section_start = 0
@@ -50,7 +47,7 @@ def sectionize_play(script):
         if speech_regex.match(line):
             if len(current_section) > 0 and current_section_name != "Speech":
                 last_section = Section(current_section_name, section_start, section_start + len(current_section), '\n'.join(current_section))
-                sections, subsection, subsubsection = add_section(last_section, subsection, subsubsection)
+                sections = add_section(last_section, subsection, subsubsection)
                 current_section = []
                 if current_section_name == 'Act' or current_section_name == 'Scene':
                     subsubsection = subsection
@@ -60,17 +57,18 @@ def sectionize_play(script):
         elif "persons" in line.lower() or "character" in line.lower() or 'personae' in line.lower():  # PERSONS/CHARACTERS = characters
             if len(current_section) > 0 and current_section_name != "Characters":  # if this closes the previous section
                 last_section = Section(current_section_name, section_start, section_start + len(current_section), '\n'.join(current_section))
-                sections, subsection, subsubsection = add_section(last_section, subsection, subsubsection)
+                sections = add_section(last_section, subsection, subsubsection)
                 section_start += len(current_section)
                 current_section = []
             current_section_name = "Characters"
             current_section.append(line)
         # title may be repeated; still part of metadata
-        # detect 'ACT'/'SCENE' (scene within act, if \exists act)
+        # detect 'ACT'/'SCENE' (scene goes within act, if \exists act)
+        # 'SCENE' type stuff and stage directions often in [], ()
         elif "scene" in line.lower():
             if len(current_section) > 0 and current_section_name != "Scene":  # if this closes the previous section
                 last_section = Section(current_section_name, section_start, section_start + len(current_section), '\n'.join(current_section))
-                sections, subsection, subsubsection = add_section(last_section, subsection, subsubsection)
+                sections = add_section(last_section, subsection, subsubsection)
                 section_start += len(current_section)
                 current_section = []
                 if sections[-1].category == "Act":
@@ -85,29 +83,25 @@ def sectionize_play(script):
         elif act_regex.match(line.lower()):
             if len(current_section) > 0 and current_section_name != "Act":  # if this closes the previous section
                 last_section = Section(current_section_name, section_start, section_start + len(current_section), '\n'.join(current_section))
-                sections, subsection, subsubsection = add_section(last_section, subsection, subsubsection)
+                sections = add_section(last_section, subsection, subsubsection)
                 section_start += len(current_section)
                 current_section = []
                 subsection = False
                 subsubsection = False
             current_section_name = "Act"
             current_section.append(line)
-            # subsection = True
-        # 'SCENE' type stuff and stage directions often in [], ()
         elif 'introduction' in line.lower():
             if len(current_section) > 0 and current_section_name != "Introduction":  # if this closes the previous section
                 last_section = Section(current_section_name, section_start, section_start + len(current_section), '\n'.join(current_section))
-                sections, subsection, subsubsection = add_section(last_section, subsection, subsubsection)
+                sections = add_section(last_section, subsection, subsubsection)
                 section_start += len(current_section)
                 current_section = []
             current_section_name = "Introduction"
-            # "_Enter_ ELEANOR _and_ SIR REGINALD FITZURSE. ELEANOR . This chart with the red line! her bower! whose bower? HENRY: The chart is not mine, but Becket's: take it, Thomas."
             current_section.append(line)
         elif 'prologue' in line.lower():
             if len(current_section) > 0 and current_section_name != "Prologue":  # if this closes the previous section
-                # TODO ensure previous section name is not None
                 last_section = Section(current_section_name, section_start, section_start + len(current_section), '\n'.join(current_section))
-                sections, subsection, subsubsection = add_section(last_section, subsection, subsubsection)
+                sections = add_section(last_section, subsection, subsubsection)
                 section_start += len(current_section)
                 current_section = []
             current_section_name = "Prologue"
@@ -116,7 +110,7 @@ def sectionize_play(script):
         elif line.startswith("[") and line.endswith("]") or line.startswith("(") and line.endswith(")") or line.startswith('_') and line.endswith('_'):
             if len(current_section) > 0 and current_section_name != "Setting":  # if this closes the previous section
                 last_section = Section(current_section_name, section_start, section_start + len(current_section), '\n'.join(current_section))
-                sections, subsection, subsubsection = add_section(last_section, subsection, subsubsection)
+                sections = add_section(last_section, subsection, subsubsection)
                 section_start += len(current_section)
                 current_section = []
                 subsection = True
@@ -125,7 +119,7 @@ def sectionize_play(script):
         elif len([c for c in line if c.isalnum()]) < len(line):  # delimiter
             if len(current_section) > 0 and current_section_name != "Metadata":  # if this closes the previous section
                 last_section = Section(current_section_name, section_start, section_start + len(current_section), '\n'.join(current_section))
-                sections, subsection, subsubsection = add_section(last_section, subsection, subsubsection)            
+                sections = add_section(last_section, subsection, subsubsection)            
                 section_start += len(current_section)
                 current_section = []
                 if current_section_name == 'Act' or current_section_name == 'Scene':
@@ -137,10 +131,10 @@ def sectionize_play(script):
     # consolidate duplicate sections
     out_sections = []
     last_section = sections[0]
-    # TODO if there's a few speech/meta sections in a row, group together
+    # TODO if there's a few speech/meta sections in a row, group hhem together
     for i in range(1, len(sections)):
         if sections[i].category == last_section.category:
-            if sections[i].category not in ['Act', 'Scene']:  # it's ok for these to appeare consecutively
+            if sections[i].category not in ['Act', 'Scene']:  # it's ok for these to appear consecutively
                 last_section = Section(last_section.category, last_section.start, sections[i].end, last_section.subsections + sections[i].subsections)
         else:
             out_sections.append(last_section)

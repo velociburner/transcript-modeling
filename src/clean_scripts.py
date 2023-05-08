@@ -53,8 +53,6 @@ def consolidate_lines(text, mode):
         lines = [line.replace('\n', ': ').strip() for line in lines if line.strip()]   
         mode_regex = colon_regex
         mode_regex_noline = colon_regex_noline
-    # lines = text.split('\n\n')
-    # lines = [line.replace('\n', ' ') for line in lines if line.strip()]  # get rid of empty strings  
     out_lines = []  
     this_line = None
     split_name = False
@@ -63,10 +61,10 @@ def consolidate_lines(text, mode):
         for reg in stage_direction_regeces:
             for directions in set(reg.findall(line)):
                 line = line.replace(directions, '<Scene>' + directions + '<Scene>')
-        if 'http' in line:  # TODO also detect e.g. 12:00:00 (regex)
+        if 'http' in line:
             continue
         if mode_regex.match(line):
-            # if period_regex.match(line):  # replace period bt speaker and line with a colon, for consistency
+            # replace period bt speaker and line with a colon, for consistency
             if mode == '.':
                 split_line = line.split('.')
                 line = split_line[0].strip() + ':' + '.'.join(split_line[1:])
@@ -96,12 +94,8 @@ def consolidate_lines(text, mode):
         elif this_line is None:  # line at the beginning of the file without a speaker; disregard
             continue
         else:
-            # print(line)
             this_line += line + ' '
     out_lines.append(this_line)  # last line
-    # for line in out_lines:
-    #     # line = re.sub(sound_effects_regex, '', line).strip()
-    #     line = sound_effects_regex.sub('', line)
     out_lines = [sound_effects_regex.sub('', line) for line in out_lines]
     return out_lines
 
@@ -146,7 +140,5 @@ if __name__ == "__main__":
                 text = f.read()
             mode = determine_mode(text)
             lines = consolidate_lines(text, mode)
-            # lines = clean_lines(text, mode=mode)
-            # lines = [line + '\n' for line in lines]
             with open(os.path.join(out_dir, fname), 'w', encoding='utf-8') as f:
                 f.writelines(lines)
