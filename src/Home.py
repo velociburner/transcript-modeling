@@ -9,7 +9,7 @@ from sentence_transformers import SentenceTransformer
 
 from process_scripts import preprocess, get_speakers
 from visualize import plot_speakers
-from database import add_file, create_tables, update_speaker
+from database import add_file, add_topic, create_tables, update_speaker
 
 sentence_model = SentenceTransformer("all-MiniLM-L12-v2")
 model = select_backend(sentence_model)
@@ -54,11 +54,18 @@ with st.form('file'):
         speakers = get_speakers(lines)
         # save to database
         add_file(db, file.name, lines)
-        for name, sentences in speakers.items():
-            update_speaker(db, name, sentences)
+        for speaker_name, sentences in speakers.items():
+            update_speaker(db, speaker_name, sentences)
+            topics, _ = topic_model.transform(sentences)
+            unique_topics = set(topics)
+            for topic_id in unique_topics:
+                topic_name = topic_model.get_topic_info(topic_id).Name[0]
+                # remove index prefix
+                _, topic_name = topic_name.split("_", maxsplit=1)
+                add_topic(db, int(topic_id), topic_name, speaker_name)
         # modeling
         if checkboxes["Vector representations"]:
-            vector_visualization = plot_speakers(topic_model, speakers)
+            vector_visualization = plot_speakers(sentence_model, speakers)
             # plot_speakers(topic_model, speakers)
         if checkboxes["Topic modeling"]:
             intertopic_distance_map = get_intertopic_distance_map('\n'.join(lines), topic_model)
