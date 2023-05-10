@@ -5,6 +5,7 @@ WORKDIR /app
 ADD ./src /app/src
 ADD ./data /app/data
 COPY requirements.txt ./requirements.txt
+COPY best_model ./best_model
 
 RUN apt update && apt install -y gcc
 RUN pip install -r requirements.txt
@@ -13,4 +14,4 @@ EXPOSE 8501
 
 ENTRYPOINT [ "streamlit", "run" ]
 
-CMD [ "src/Home.py" ]
+CMD [ "src/home.py" ]
