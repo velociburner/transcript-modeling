@@ -4,7 +4,6 @@ import streamlit as st
 
 from bertopic import BERTopic
 from bertopic.backend._utils import select_backend
-from visualize_topics import get_intertopic_distance_map
 from sentence_transformers import SentenceTransformer
 
 from process_scripts import preprocess, get_speakers
@@ -52,23 +51,23 @@ with st.form('file'):
         lines = preprocess(file)
         st.write(lines)
         speakers = get_speakers(lines)
-        # save to database
-        db.add_file(file.name, lines)
-        for speaker_name, sentences in speakers.items():
-            db.update_speaker(speaker_name, sentences)
-            topics, _ = topic_model.transform(sentences)
-            unique_topics = set(topics)
-            for topic_id in unique_topics:
-                topic_name = topic_model.get_topic_info(topic_id).Name[0]
-                # remove index prefix
-                _, topic_name = topic_name.split("_", maxsplit=1)
-                db.add_topic(int(topic_id), topic_name, speaker_name)
+
         # modeling
         if checkboxes["Vector representations"]:
             vector_visualization = plot_speakers(sentence_model, speakers)
-            # plot_speakers(topic_model, speakers)
+            st.pyplot(vector_visualization)
         if checkboxes["Topic modeling"]:
-            intertopic_distance_map = get_intertopic_distance_map('\n'.join(lines), topic_model)
-            st.write(intertopic_distance_map)
+            # save to database
+            db.add_file(file.name, lines)
+            for speaker_name, items in speakers.items():
+                sentences = [item[-1] for item in items]
+                db.update_speaker(speaker_name, sentences)
+                topics, _ = topic_model.transform(sentences)
+                for topic_id in topics:
+                    topic_name = topic_model.get_topic_info(topic_id).Name[0]
+                    # remove index prefix
+                    _, topic_name = topic_name.split("_", maxsplit=1)
+                    db.add_topic(int(topic_id), topic_name, speaker_name)
+            st.write(topic_model.visualize_topics())
 
 db.close()
