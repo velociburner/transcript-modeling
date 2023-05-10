@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import streamlit as st
-# from streamlit_extras.switch_page_button import switch_page
+
 
 from bertopic import BERTopic
 from bertopic.backend._utils import select_backend
@@ -37,6 +37,7 @@ db_file = os.path.join("instance", "transcripts.db")
 conn = create_connection(db_file)
 db = TopicDatabase(conn)
 
+
 if 'sections' not in st.session_state:  # setting up sections of a transcript
     st.session_state.sections = []
 st.session_state.sentence_model = sentence_model
@@ -49,6 +50,7 @@ with st.form('file'):
     # checkboxes for different tasks
     checkbox_row = st.columns(3)
     checkboxes = {}
+
     with checkbox_row[0]:  # split document into different sections (typically acts)
         checkboxes["Sectionizing"] = st.checkbox("Sectionizing")
     with checkbox_row[1]:  # get vector representations for each speaker's dialogue
