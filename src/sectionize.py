@@ -145,9 +145,10 @@ def sectionize_play(script):
             for subsection in section.subsections:
                 if len(subsection.subsections) > 0:
                     subsection.end = subsection.subsections[-1].end
+                    subsection.text += '\n'.join([subsubsection.text for subsubsection in subsection.subsections])
             if len(section.subsections) > 0:
                 section.end = section.subsections[-1].end
-
+                section.text += '\n'.join([subsection.text for subsection in section.subsections])
     return out_sections
 
 
