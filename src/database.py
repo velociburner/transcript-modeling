@@ -74,7 +74,7 @@ class TopicDatabase:
 
         self.conn.commit()
 
-    def update_speaker(self, name: str, sentences: dict[str, list]):
+    def update_speaker(self, name: str, sentences: list[str]):
         """Increases the number of sentences of a given speaker if it is
         already in the table, or creates a new entry if not."""
 

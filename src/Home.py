@@ -5,7 +5,6 @@ import streamlit as st
 
 from bertopic import BERTopic
 from bertopic.backend._utils import select_backend
-from visualize_topics import get_intertopic_distance_map
 from sentence_transformers import SentenceTransformer
 
 
@@ -66,6 +65,7 @@ with st.form('file'):
         else:
             sections = [text]
         # if sectionizing: do processing for each act
+
         for i, section in enumerate(sections):
             lines = preprocess(section)
             # st.write(lines)
@@ -77,10 +77,29 @@ with st.form('file'):
                 topics, _ = topic_model.transform(sentences)
                 unique_topics = set(topics)
                 for topic_id in unique_topics:  # TODO what do we want to do with this?
+
+        lines = preprocess(file)
+        st.write(lines)
+        speakers = get_speakers(lines)
+
+        # modeling
+        if checkboxes["Vector representations"]:
+            vector_visualization = plot_speakers(sentence_model, speakers)
+            st.pyplot(vector_visualization)
+        if checkboxes["Topic modeling"]:
+            # save to database
+            db.add_file(file.name, lines)
+            for speaker_name, items in speakers.items():
+                sentences = [item[-1] for item in items]
+                db.update_speaker(speaker_name, sentences)
+                topics, _ = topic_model.transform(sentences)
+                for topic_id in topics:
+
                     topic_name = topic_model.get_topic_info(topic_id).Name[0]
                     # remove index prefix
                     _, topic_name = topic_name.split("_", maxsplit=1)
                     db.add_topic(int(topic_id), topic_name, speaker_name)
+
             st.write("Done preprocessing! Click \"visualize whole script\" on the left to see results.")
             st.session_state.sections.append(speakers)
             # user preferences
@@ -88,4 +107,6 @@ with st.form('file'):
                 st.session_state.visualize_vectors = True
             if checkboxes["Topic modeling"]:  # model topics?
                 st.session_state.visualize_topics = True
+                st.write(topic_model.visualize_topics())
+                
 db.close()
