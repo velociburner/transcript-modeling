@@ -74,11 +74,6 @@ with st.form('file'):
             speakers = get_speakers(lines)
             # save to database
             db.add_file(file.name + '_' + str(i), lines)
-            for speaker_name, sentences in speakers.items():
-                db.update_speaker(speaker_name, sentences)
-                topics, _ = topic_model.transform(sentences)
-                unique_topics = set(topics)
-                for topic_id in unique_topics:  # TODO what do we want to do with this?
 
         lines = preprocess(file)
         st.write(lines)
@@ -96,7 +91,6 @@ with st.form('file'):
                 db.update_speaker(speaker_name, sentences)
                 topics, _ = topic_model.transform(sentences)
                 for topic_id in topics:
-
                     topic_name = topic_model.get_topic_info(topic_id).Name[0]
                     # remove index prefix
                     _, topic_name = topic_name.split("_", maxsplit=1)
@@ -110,5 +104,5 @@ with st.form('file'):
             if checkboxes["Topic modeling"]:  # model topics?
                 st.session_state.visualize_topics = True
                 st.write(topic_model.visualize_topics())
-                
+
 db.close()
