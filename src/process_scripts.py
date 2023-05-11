@@ -1,4 +1,4 @@
-from clean_scripts import determine_mode, consolidate_lines, titles
+from consolidate_lines import determine_mode, consolidate_lines, titles
 from collections import defaultdict
 import os
 import re
