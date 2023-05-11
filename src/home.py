@@ -38,6 +38,7 @@ conn = create_connection(db_file)
 db = TopicDatabase(conn)
 
 
+st.session_state.db = db
 if 'sections' not in st.session_state:  # setting up sections of a transcript
     st.session_state.sections = []
 st.session_state.sentence_model = sentence_model
@@ -56,9 +57,9 @@ with st.form('file'):
     with checkbox_row_1[1]:
         checkboxes["Print processed lines"] = st.checkbox("Print processed lines")
     checkbox_row_2 = st.columns(2)
-    with checkbox_row_2[2]:  # get vector representations for each speaker's dialogue
+    with checkbox_row_2[0]:  # get vector representations for each speaker's dialogue
         checkboxes["Vector representations"] = st.checkbox("Vector representations", value=True)
-    with checkbox_row_2[3]:
+    with checkbox_row_2[1]:
         checkboxes["Topic modeling"] = st.checkbox("Topic modeling", value=True)
     upload = st.form_submit_button("Upload")
     if upload:
@@ -70,10 +71,7 @@ with st.form('file'):
             sections = [section.text for section in sections if section.category in ["Act", "Scene", "Speech"]]
         else:
             sections = [text]
-        
-        db.add_file(file.name, '\n'.join(sections))
 
-        # if sectionizing: do processing for each act
         for i, section in enumerate(sections):
             lines = preprocess(section)
             speakers = get_speakers(lines)
@@ -103,7 +101,3 @@ with st.form('file'):
                     # st.write(topic_model.visualize_topics())
 
         st.write("Done preprocessing! Click \"visualize entire script\" on the left to see results.")
-                
-                
-
-db.close()

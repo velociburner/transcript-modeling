@@ -133,6 +133,12 @@ class TopicDatabase:
         """Returns the rows of the Topics table."""
         return self._get("Topics")
 
+    def get_topics_by_speaker(self):
+        """Returns the joined table of topics and speakers."""
+        sql = """SELECT * FROM Topics JOIN Speakers ON
+                Topics.SpeakerID=Speakers.SpeakerID"""
+        return self.conn.execute(sql)
+
     def close(self):
         """Closes the connection to the database."""
         self.conn.close()
