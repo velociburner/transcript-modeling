@@ -76,6 +76,7 @@ with st.form('file'):
         # if sectionizing: do processing for each act
         for i, section in enumerate(sections):
             lines = preprocess(section)
+            speakers = get_speakers(lines)
             # save to database
             db.add_file(file.name + '_' + str(i), lines)
             if checkboxes["Print processed lines"]:
