@@ -54,13 +54,13 @@ def get_speakers(lines, mode=':'):
     return out_speaker_lines
     
 
-def preprocess(file):
-    text = file.read().decode('utf-8')
+def preprocess(text):
     mode = determine_mode(text)
     lines = consolidate_lines(text, mode)
     return lines
 
 
+# this is not used in the app; it was put here for testing purposes.
 if __name__ == '__main__':
     in_dir = '../final_project/play_scripts'
     for fname in os.listdir(in_dir):
