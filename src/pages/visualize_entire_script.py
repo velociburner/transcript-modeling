@@ -2,8 +2,6 @@
 # users can select a speaker to see that speaker's individual visualization (visualize_singlespeaker.py)
 import streamlit as st
 from visualize import plot_speakers
-from visualize_topics import get_intertopic_distance_map
-# from streamlit_extras.switch_page_button import switch_page
 
 st.set_page_config(page_title="Visualization")
 

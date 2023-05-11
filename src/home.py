@@ -48,44 +48,48 @@ st.session_state.visualize_topics = False
 with st.form('file'):
     file = st.file_uploader("Upload a script or transcript")  # TODO handle multiple files
     # checkboxes for different tasks
-    checkbox_row = st.columns(3)
+    checkbox_row_1 = st.columns(2)
     checkboxes = {}
 
-    with checkbox_row[0]:  # split document into different sections (typically acts)
-        checkboxes["Sectionizing"] = st.checkbox("Sectionizing")
-    with checkbox_row[1]:  # get vector representations for each speaker's dialogue
+    with checkbox_row_1[0]:  # split document into different sections (typically acts)
+        checkboxes["Sectionize"] = st.checkbox("Sectionize")
+    with checkbox_row_1[1]:
+        checkboxes["Print processed lines"] = st.checkbox("Print processed lines")
+    checkbox_row_2 = st.columns(2)
+    with checkbox_row_2[2]:  # get vector representations for each speaker's dialogue
         checkboxes["Vector representations"] = st.checkbox("Vector representations", value=True)
-    with checkbox_row[2]:
+    with checkbox_row_2[3]:
         checkboxes["Topic modeling"] = st.checkbox("Topic modeling", value=True)
     upload = st.form_submit_button("Upload")
     if upload:
+        st.write("Wait for it...")
         # preprocessing
         text = file.read().decode('utf-8')
-        if checkboxes["Sectionizing"]:
+        if checkboxes["Sectionize"]:
             sections = sectionize_play(text)
             sections = [section.text for section in sections if section.category in ["Act", "Scene", "Speech"]]
         else:
             sections = [text]
-        # if sectionizing: do processing for each act
+        
+        db.add_file(file.name, '\n'.join(sections))
 
+        # if sectionizing: do processing for each act
         for i, section in enumerate(sections):
             lines = preprocess(section)
-            # st.write(lines)
-            speakers = get_speakers(lines)
             # save to database
             db.add_file(file.name + '_' + str(i), lines)
-
-        lines = preprocess(file)
-        st.write(lines)
-        speakers = get_speakers(lines)
+            if checkboxes["Print processed lines"]:
+                st.write(lines)
+            st.session_state.sections.append(speakers)
 
         # modeling
-        if checkboxes["Vector representations"]:
-            vector_visualization = plot_speakers(sentence_model, speakers)
-            st.pyplot(vector_visualization)
-        if checkboxes["Topic modeling"]:
+        if checkboxes["Vector representations"]:  # generate vector representations
+            # this is handled in teh visualization pages
+            st.session_state.visualize_vectors = True
+
+        if checkboxes["Topic modeling"]:  # model topics
+            st.session_state.visualize_topics = True
             # save to database
-            db.add_file(file.name, lines)
             for speaker_name, items in speakers.items():
                 sentences = [item[-1] for item in items]
                 db.update_speaker(speaker_name, sentences)
@@ -95,14 +99,10 @@ with st.form('file'):
                     # remove index prefix
                     _, topic_name = topic_name.split("_", maxsplit=1)
                     db.add_topic(int(topic_id), topic_name, speaker_name)
+                    # st.write(topic_model.visualize_topics())
 
-            st.write("Done preprocessing! Click \"visualize whole script\" on the left to see results.")
-            st.session_state.sections.append(speakers)
-            # user preferences
-            if checkboxes["Vector representations"]:  # generate vector representations?
-                st.session_state.visualize_vectors = True
-            if checkboxes["Topic modeling"]:  # model topics?
-                st.session_state.visualize_topics = True
-                st.write(topic_model.visualize_topics())
+        st.write("Done preprocessing! Click \"visualize entire script\" on the left to see results.")
+                
+                
 
 db.close()

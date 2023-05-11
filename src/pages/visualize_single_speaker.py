@@ -1,6 +1,5 @@
 import streamlit as st
 from visualize import plot_speakers
-from visualize_topics import get_intertopic_distance_map
 
 st.set_page_config(page_title="Visualization")
 
