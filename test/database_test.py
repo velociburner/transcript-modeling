@@ -1,9 +1,7 @@
-import sys
 import unittest
 import sqlite3
 
-sys.path.insert(0, "../src/")
-from database import TopicDatabase
+from src.database import TopicDatabase
 
 
 class DatabaseTest(unittest.TestCase):

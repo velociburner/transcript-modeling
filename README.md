@@ -1,6 +1,7 @@
 # transcript-modeling
 Final project for COSI 217b Natural Language Processing Systems
 
+## Web app
 The entire application can be built and run using Docker. The image that it creates is quite large (~8GB) due to
 PyTorch and its requirements, and downloading and storing the best model. It will take a few minutes to create for the
 first time.
@@ -13,4 +14,15 @@ requirements. Then, visit [http://127.0.0.1:8501](http://127.0.0.1:8501) on the 
 running in the container.
 ```sh
 docker run --rm -p 8501:8501 -v $PWD/instance:/app/instance --name transcript-modeling transcript-modeling
+```
+
+## Tests
+First, install pytest
+```sh
+pip install pytest
+```
+
+Then, run from the root of the project:
+```sh
+python -m pytest
 ```
